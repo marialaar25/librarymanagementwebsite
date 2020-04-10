@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Loans Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Loans Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html">Books</a>
+        <a href="loans.html" class="active">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- Link to Loaning a Book to a User Page -->
+    <div class="row loan-book-div">
+        <div class="link col-md-12">
+            <a href="loan-book.html"><img src="images/loanbookimg.png" alt="Loan Book to User"></a>
+            <p><a href="loan-book.html">Loan Book to User</a></p>
+        </div>
+    </div>
+    <!-- Search Users Loans form starts here -->
+    <div class="row">
+        <div class="search-div col-md-6">
+            <form>
+                <fieldset>
+                    <legend class="legend-edit">Search User's List of Loans</legend>
+                    <label for="search_term">Enter User ID: <input type="number" name="id" id="search_term"></label>
+                    <input type="button" id="search_button" value="Search">
+                </fieldset>
+            </form>
+        </div>
+
+        <div class="search-div col-md-6">
+            <form>
+                <fieldset>
+                    <legend class="legend-edit">Search User Currently Borrowing a Book</legend>
+                    <label for="book_id">Enter Book ID: <input type="number" name="id" id="book_id"></label>
+                    <input type="button" id="book_id_button" value="Search">
+                </fieldset>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div id="output1" class="search-div col-md-6"></div>
+        <div id="output2" class="search-div col-md-6"></div>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+    <!-- JavaScript code starts here -->
+    <script>
+        // Responsive Nav Bar code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        // Functions to be used multiple times with GET requests
+        const encodeParameters = function(params) {
+            // turns JSON data into a string format to be concatenated to the URL of the server
+            var strArray = [];
+            Object.keys(params).forEach(function(key) {
+                var paramString = encodeURIComponent(params[key]);
+                strArray.push(paramString);
+            });
+            return strArray;
+        };
+        const createList = function(parentElement) {
+            // creates a new div inside the html page
+            let newList = document.createElement("div");
+            parentElement.appendChild(newList);
+            return newList;
+        };
+        const addListItem = function(parentList, textContent) {
+            // creates a new paragraph within the new div for data to be added to 
+            let newItem = document.createElement("p");
+            newItem.appendChild(document.createTextNode(textContent));
+            parentList.appendChild(newItem);
+        };
+
+        ////////////////////////////////////
+        // SEARCH USER'S LOANS BY USER ID //
+        ////////////////////////////////////
+        const processResponse = function() {
+            // adds the returned data from the server into the html div (by id)
+            // selects which data points to add
+            let response = JSON.parse(this.response);
+            console.log(response);
+            let outputDiv = document.getElementById("output1");
+            let newList = createList(outputDiv);
+            // loop through each response and display in html
+            var i;
+            for (i = 0; i < response.length; i++) {
+                addListItem(newList, "Due Date: " + response[i].dueDate);
+                addListItem(newList, "Book ID: " + response[i].BookId)
+            }
+        };
+        // GET request by User ID
+        const makeAPIQuery = function(search_term) {
+            // set base and end URL which will be used to search for a user's loans
+            let rootURL = "http://127.0.0.1:3000/users/";
+            let endURL = "/loans";
+            // parameters which will be concatenated to the base URL
+            let params = {
+                id: search_term
+            }
+
+            // generating the full URL to send to the server
+            let queryURL = rootURL + encodeParameters(params) + endURL;
+            console.log(queryURL);
+
+            //sending the GET request
+            let xhttp = new XMLHttpRequest();
+            xhttp.addEventListener("load", processResponse);
+            xhttp.open("GET", queryURL);
+            xhttp.send();
+
+        };
+
+        // creating an event listener to only make the GET request when search button is clicked on
+        let submitButton = document.getElementById("search_button");
+        submitButton.addEventListener("click", function() {
+            if (document.getElementById("search_term").value === "") {
+                alert("Enter User ID to search.");
+                return false;
+            } else {
+                let search_term = document.getElementById("search_term").value;
+                if (search_term) {
+                    makeAPIQuery(search_term);
+                }
+            }
+        });
+
+        ///////////////////////////////////////////////
+        // SEARCH USER BORROWING A BOOK (BY BOOK ID) //
+        ///////////////////////////////////////////////
+        const processResponses = function() {
+            // same as previous processResponse function 
+            // but need different JSON data points to be displayed in the result 
+            let response = JSON.parse(this.response);
+            console.log(response);
+            let outputDiv = document.getElementById("output2");
+            let newList = createList(outputDiv);
+            // loop through response and display in html
+            var i;
+            for (i = 0; i < response.length; i++) {
+                addListItem(newList, "Due Date: " + response[i].dueDate);
+                addListItem(newList, "User ID: " + response[i].UserId)
+            }
+        };
+
+        // GET request by Book ID
+        const makeQuery = function(search_term) {
+            // set base URL
+            let rootURL = "http://127.0.0.1:3000/loans/books/";
+            // parameters which will be concatenated to the base URL based on input from client
+            let params = {
+                BookId: search_term
+            }
+
+            // generating the full URL to send to the server
+            let queryURL = rootURL + encodeParameters(params);
+            console.log(queryURL);
+
+            //sending the GET request
+            let xhttp = new XMLHttpRequest();
+            xhttp.addEventListener("load", processResponses);
+            xhttp.open("GET", queryURL);
+            xhttp.send();
+        };
+
+        // creating an event listener to only make the GET request when button is clicked on
+        let submittButton = document.getElementById("book_id_button");
+        submittButton.addEventListener("click", function() {
+            if (document.getElementById("book_id").value === "") {
+                alert("Enter Book ID to search.");
+                return false;
+            } else {
+                let search_term = document.getElementById("book_id").value;
+                if (search_term) {
+                    makeQuery(search_term);
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>

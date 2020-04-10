@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Add User Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Add User Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html" class="active">Users</a>
+        <a href="books.html">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- The add user form starts here  -->
+    <div class="search-div isbn-div">
+        <form>
+            <fieldset>
+                <legend class="legend-edit"> Add a New User to the System </legend>
+                <label>Required fields are marked with an asterisk (*).</label><br><br>
+
+                <label for="add_username">*Name: 
+                <input type="text" name="name" id="add_username" aria-label="enter user name" aria-required="true" required></label><br>
+                <label for="add_userbarcode">*Barcode (6 digits): 
+                <input type="number" name="barcode" placeholder="######" id="add_userbarcode" aria-label="enter user barcode" aria-required="true" required></label><br>
+                <label for="add_usermtype">*Member Type (Student or Staff): 
+                <input type="text" name="memberType" id="add_usermtype" aria-label="enter user member type" aria-required="true" required></label><br>
+
+                <br><input id="add_button" type="button" value="Add User" aria-label="add the new user">
+                <input type="reset" value="Clear All Fields" aria-label="clear input fields">
+            </fieldset>
+        </form>
+    </div>
+    <!-- This sections shows the users on the server, to see if a user has been added -->
+    <div class="search-div isbn-div">
+        <fieldset>
+            <legend class="legend-edit"> All Users<br>(Newly added users will be seen in this list) </legend>
+            <ol id="users_list"></ol>
+        </fieldset>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript Code starts here -->
+    <script>
+        // Natigation Bar code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        ////////////////////
+        // ADD A NEW USER //
+        ////////////////////
+
+        // base URL for the library server
+        const base_url = "http://127.0.0.1:3000";
+
+        // this functions creates a list of all users on the html page
+        function updateUserList() {
+
+            // making a GET request to the users endpoint
+            var xhttp = new XMLHttpRequest();
+            var users_url = "/users";
+
+            var query_url = base_url + users_url;
+            xhttp.open('GET', query_url);
+
+            // when the request is finished, go through the data
+            // and add each user to a list
+            xhttp.addEventListener('load', function() {
+
+                var user_list = document.querySelector('#users_list');
+                // clear the list of existing data
+                user_list.innerHTML = "";
+
+                var users = JSON.parse(this.response);
+                // loop through each user
+                users.forEach(function(user) {
+                    // create a new list item for each user and add to the list
+                    // create html labels so users understand what data corresponds to which key
+                    var label = document.createTextNode("ID: ");
+                    var id = document.createTextNode(user.id);
+                    var label2 = document.createTextNode("Name: ");
+                    var name = document.createTextNode(user.name);
+                    var label3 = document.createTextNode("Barcode: ");
+                    var barcode = document.createTextNode(user.barcode);
+                    var label4 = document.createTextNode("Member Type: ");
+                    var memberType = document.createTextNode(user.memberType);
+                    var label5 = document.createTextNode("Created At: ");
+                    var createdAt = document.createTextNode(user.createdAt);
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('li');
+                    var list_item2 = document.createElement('p');
+                    var list_item3 = document.createElement('p');
+                    var list_item4 = document.createElement('p');
+                    var list_item5 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(id);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(name);
+                    list_item3.appendChild(label3);
+                    list_item3.appendChild(barcode);
+                    list_item4.appendChild(label4);
+                    list_item4.appendChild(memberType);
+                    list_item5.appendChild(label5);
+                    list_item5.appendChild(createdAt);
+
+                    // append all elements into the html <ol> tag with id="users_list"
+                    user_list.appendChild(list_item);
+                    user_list.appendChild(list_item2);
+                    user_list.appendChild(list_item3);
+                    user_list.appendChild(list_item4);
+                    user_list.appendChild(list_item5);
+                })
+            });
+            xhttp.send();
+        }
+
+        // This function makes a POST request when the Add User button is clicked
+        document.querySelector('#add_button').addEventListener('click', function() {
+            // first check if all fileds have been filled 
+            if (document.getElementById("add_username").value === "" ||
+                document.getElementById("add_userbarcode").value === "" ||
+                document.getElementById("add_usermtype").value === "") {
+                alert("All fields are required, please enter User Name, User Barcode and User Member Type.");
+                return false;
+            } else {
+                // if all fields entered send the request
+                var inputName = document.getElementById("add_username").value;
+                var inputBarcode = document.getElementById("add_userbarcode").value;
+                var inputMemberType = document.getElementById("add_usermtype").value;
+
+                // full server URL to which the POST request will go to 
+                var url = base_url + "/" + "users";
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("POST", url);
+                // setting the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                // specifying the input parameters
+                var params = {
+                    name: inputName,
+                    barcode: inputBarcode,
+                    memberType: inputMemberType
+                };
+
+                // when the POST request is returned, clear and update the user list
+                xhttp.addEventListener('load', function() {
+                    updateUserList();
+                });
+                xhttp.send(JSON.stringify(params));
+                return true;
+            }
+        });
+        updateUserList();
+    </script>
+</body>
+
+</html>

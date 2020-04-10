@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Search Book Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Search Book Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html" class="active">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+    <!-- Search book by author form starts here -->
+    <div class="search-div">
+        <form role="search">
+            <fieldset>
+                <legend class="legend-edit">Search Book by Author</legend>
+                <label for="search_term">Enter Author ID: <input type="number" name="id" id="search_term" aria-required="true" required></label>
+                <input type="button" id="search_button" value="Search" aria-label="search button">
+            </fieldset>
+        </form>
+    </div>
+    <div id="output"></div>
+
+    <!-- Section to show all Authors and their IDs -->
+    <div class="search-div isbn-div">
+        <fieldset>
+            <legend class="legend-edit"> All Authors </legend>
+            <ol id="authors_list"></ol>
+        </fieldset>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavsScript code starts here -->
+    <script>
+        // Responsive Nav Bar code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        ///////////////////////////////////////////////
+        // SEARCH A USER BORROWING A BOOK BY BOOK ID //
+        ///////////////////////////////////////////////
+
+        // Functions to be used in global scope
+        const encodeParameters = function(params) {
+            // turns JSON data into a string to concatenate to base URL
+            var strArray = [];
+            Object.keys(params).forEach(function(key) {
+                var paramString = encodeURIComponent(params[key]);
+                strArray.push(paramString);
+            });
+            return strArray;
+        };
+
+        const processResponse = function() {
+            // selects which JSON data items to display in html
+            let response = JSON.parse(this.response);
+            console.log(response);
+            let outputDiv = document.getElementById("output");
+            let newList = createList(outputDiv);
+            // displays the searched authors name and id
+            addListItem(newList, "Author ID: " + response.id);
+            addListItem(newList, "Name: " + response.name);
+            var i;
+            for (i = 0; i < response.Books.length; i++) {
+                // loop through each book if Author wrote more than 1 book and add to html
+                addListItem(newList, "Book Title: " + response.Books[i].title)
+                addListItem(newList, "Book ISBN: " + response.Books[i].isbn)
+                addListItem(newList, "Book ID: " + response.Books[i].id)
+            }
+        };
+
+        const createList = function(parentElement) {
+            // creates a new div
+            let newList = document.createElement("div");
+            parentElement.appendChild(newList);
+            return newList;
+        };
+        const addListItem = function(parentList, textContent) {
+            // creates a new paragraph within the new div for data to be added to 
+            let newItem = document.createElement("p");
+            newItem.appendChild(document.createTextNode(textContent));
+            parentList.appendChild(newItem);
+        };
+
+        // This is the GET request function
+        const makeAPIQuery = function(search_term) {
+            // set base URL which will be used to search for a user
+            let rootURL = "http://127.0.0.1:3000/authors/";
+            let endURL = "?allEntities=true";
+            // parameters which will be concatenated to the base URL based on input from client
+            let params = {
+                title: search_term
+            }
+
+            // generating the full URL to send to the server
+            let queryURL = rootURL + encodeParameters(params) + endURL;
+            console.log(queryURL);
+
+            //sending the GET request
+            let xhttp = new XMLHttpRequest();
+            xhttp.addEventListener("load", processResponse);
+            xhttp.open("GET", queryURL);
+            xhttp.send();
+
+        };
+
+        // creating an event listener to only make the GET request when search button is clicked on
+        let submitButton = document.getElementById("search_button");
+        submitButton.addEventListener("click", function() {
+            // check if the field is not empty
+            if (document.getElementById("search_term").value === "") {
+                alert("Enter Author ID to Search.");
+                return false;
+            } else {
+                let search_term = document.getElementById("search_term").value;
+
+                if (search_term) {
+                    makeAPIQuery(search_term);
+                }
+            }
+        });
+        ////////////////////////////////////////////
+        // DISPLAY LIST OF AUTHORS AND THEIR ID'S //
+        ////////////////////////////////////////////
+
+        function updateAuthorList() {
+            // base URL for the library server
+            const base_url = "http://127.0.0.1:3000";
+
+            // making a GET request to the authors endpoint
+            var xhttp = new XMLHttpRequest();
+
+            var query_url = base_url + "/authors";
+            xhttp.open('GET', query_url);
+
+            // when the request is finished, go through the data
+            // and add each author to a list
+            xhttp.addEventListener('load', function() {
+
+                var author_list = document.querySelector('#authors_list');
+                // clear the list of existing data
+                author_list.innerHTML = "";
+
+                var authors = JSON.parse(this.response);
+                // loop through each author
+                authors.forEach(function(author) {
+                    // create a new list item for each author and add to the list
+                    // create html labels so users understand what data point corresponds to which key
+                    var label = document.createTextNode("Author Name: ");
+                    var name = document.createTextNode(author.name);
+                    var label2 = document.createTextNode("Author ID: ");
+                    var id = document.createTextNode(author.id);
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('li');
+                    var list_item2 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(name);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(id);
+
+                    // append all elements into the html <ol> tag with id="users_list"
+                    author_list.appendChild(list_item);
+                    author_list.appendChild(list_item2);
+                })
+            });
+            xhttp.send();
+        }
+        updateAuthorList();
+    </script>
+</body>
+
+</html>

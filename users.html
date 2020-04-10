@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Users Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Users Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html" class="active">Users</a>
+        <a href="books.html">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- The search user by name form starts here -->
+    <div class="search-div">
+        <form role="search">
+            <fieldset>
+                <legend class="legend-edit">Search Existing User by Name</legend>
+                <label for="search_term">Enter Name: <input type="text" name="name" id="search_term" aria-required="true" required></label>
+                <input type="button" id="search_button" value="Search">
+            </fieldset>
+        </form>
+    </div>
+    <div id="output" role="list"></div>
+
+    <!-- link for searching a user by barcode, this needs a separate web link to the database -->
+    <div class="search-div">
+        <fieldset>
+            <legend class="link"><a href="user-barcodesearch.html">Search by Barcode</a></legend>
+        </fieldset>
+    </div>
+
+    <!-- Links to pages for adding, deleting and updating users start here -->
+    <div class="row users-links">
+        <div class="container-fluid link col-md-4">
+            <a href="user-add.html"><img src="images/newuserimg.png" alt="" aria-label="add a new user image link"></a>
+            <p>
+                <a href="user-add.html" aria-label="add a new user text link">Add New User</a>
+            </p>
+        </div>
+        <div class="container-fluid link col-md-4">
+            <a href="user-delete.html"><img src="images/deleteuserimg.jpg" alt="" aria-label="delete a user image link"></a>
+            <p>
+                <a href="user-delete.html" aria-label="delete a user text link">Delete User</a>
+            </p>
+        </div>
+        <div class="container-fluid link col-md-4">
+            <a href="user-update.html"><img src="images/updateuserimg.png" alt="" aria-label="update a user image link"></a>
+            <p>
+                <a href="user-update.html" aria-label="update a user text link">Update User</a>
+            </p>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript code starts here -->
+    <script>
+        // Responsive Nav Bar Code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        /////////////////////////
+        // SEARCH USER BY NAME //
+        /////////////////////////
+
+        // Functions prepare code for the GET request 
+        const encodeParameters = function(params) {
+            // turns JASON data into a string to concatenate to base url
+            var strArray = [];
+            Object.keys(params).forEach(function(key) {
+                var paramString = encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+                strArray.push(paramString);
+            });
+            return strArray.join("&");
+        };
+
+        const processResponse = function() {
+            // appends the returned data into the specified html div
+            let response = JSON.parse(this.response);
+            console.log(response);
+            let outputDiv = document.getElementById("output");
+            let newList = createList(outputDiv);
+            var i;
+            for (i = 0; i < response.length; i++) {
+                // loops through the response and adds selected JSON data to html
+                addListItem(newList, "ID: " + response[i].id);
+                addListItem(newList, "Name: " + response[i].name);
+                addListItem(newList, "Barcode: " + response[i].barcode);
+                addListItem(newList, "Member Type: " + response[i].memberType);
+            }
+        };
+
+        const createList = function(parentElement) {
+            // creates a new div
+            let newList = document.createElement("div");
+            parentElement.appendChild(newList);
+            return newList;
+        };
+        const addListItem = function(parentList, textContent) {
+            // creates a new paragraph within the new div for data to be added to 
+            let newItem = document.createElement("p");
+            newItem.appendChild(document.createTextNode(textContent));
+            parentList.appendChild(newItem);
+        };
+
+        // GET request
+        const makeAPIQuery = function(search_term) {
+            // set base URL which will be used to search for a user
+            let rootURL = "http://127.0.0.1:3000/search?type=user";
+            // parameters which will be concatenated to the base URL based on input from client
+            // making the form search by name
+            let params = {
+                name: search_term
+            }
+
+            // generating the full URL to send to the server
+            let queryURL = rootURL + "&" + encodeParameters(params);
+            console.log(queryURL);
+            //sending the GET request
+            let xhttp = new XMLHttpRequest();
+            xhttp.addEventListener("load", processResponse);
+            xhttp.open("GET", queryURL);
+            xhttp.send();
+
+        };
+
+        let submitButton = document.getElementById("search_button");
+        // creating an event listener to only make the GET request when search button is clicked on
+        submitButton.addEventListener("click", function() {
+            // check for empty fields before sending to server
+            if (document.getElementById("search_term").value === "") {
+                alert("Enter Name to Search.");
+                return false;
+            } else {
+                let search_term = document.getElementById("search_term").value;
+                if (search_term) {
+                    makeAPIQuery(search_term);
+                }
+                return true;
+            }
+
+        });
+        /* User's details are now visible on the web page after searching a user's name,
+        the input field accepts all characters to make it easier to search for users
+        without knowing exact spelling of someone's name or just to see all users 
+        who's name has an "m" or "-" in it for example. */
+    </script>
+</body>
+
+</html>

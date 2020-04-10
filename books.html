@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Books Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Books Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html" class="active">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- The search book by title form starts here -->
+    <div class="search-div">
+        <form role="search">
+            <fieldset>
+                <legend class="legend-edit">Search Books by Title</legend>
+                <label for="search_term">Enter Title: <input type="text" id="search_term" aria-required="true" required></label>
+                <input type="button" id="search_button" value="Search" aria-label="search button">
+                <input type="reset" value="Clear Field">
+            </fieldset>
+        </form>
+    </div>
+    <div id="output"></div>
+
+    <!-- Links to pages for searching by author, deleting and adding a book  -->
+    <div class="row book-links-div">
+        <div class="container-fluid link col-md-4">
+            <a href="book-authorsearch.html"><img src="images/searchauthorimg.png" alt="" aria-label="image button"></a>
+            <p> <a href="book-authorsearch.html">Search by Author</a></p>
+        </div>
+        <div class="container-fluid link col-md-4">
+            <a href="book-add.html"><img src="images/addbookimg.png" alt="" aria-label="image button"></a>
+            <p> <a href="book-add.html">Add New Book</a></p>
+        </div>
+        <div class="container-fluid link col-md-4">
+            <a href="book-delete.html"><img src="images/deletebookimg.png" alt="" aria-label="image button"></a>
+            <p> <a href="book-delete.html">Delete Book</a></p>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript code starts here -->
+    <script>
+        // Responsive Nav Bar code 
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+        ////////////////////////////
+        // SEARCH A BOOK BY TITLE //
+        ////////////////////////////
+
+        // Functions to be used in global scope
+        const encodeParameters = function(params) {
+            // turns JSON data into a string to be concatenated to the base URL 
+            var strArray = [];
+            Object.keys(params).forEach(function(key) {
+                var paramString = encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+                strArray.push(paramString);
+            });
+            return strArray.join("&");
+        };
+
+        const createList = function(parentElement) {
+            // creates a new div inside the html page
+            let newList = document.createElement("div");
+            parentElement.appendChild(newList);
+            return newList;
+        };
+        const addListItem = function(parentList, textContent) {
+            // creates a new paragraph within the new div for data to be added to 
+            let newItem = document.createElement("p");
+            newItem.appendChild(document.createTextNode(textContent));
+            parentList.appendChild(newItem);
+        };
+
+        const processResponse = function() {
+            // loops through each response and adds selected data to the html
+            let response = JSON.parse(this.response);
+            console.log(response);
+            let outputDiv = document.getElementById("output");
+            let newList = createList(outputDiv);
+            var i;
+            for (i = 0; i < response.length; i++) {
+                addListItem(newList, "Book ID: " + response[i].id);
+                addListItem(newList, "Title: " + response[i].title);
+                addListItem(newList, "ISBN: " + response[i].isbn);
+            }
+        };
+
+        // GET request
+        const makeAPIQuery = function(search_term) {
+            // set base URL
+            let rootURL = "http://127.0.0.1:3000/search?type=book";
+            // parameters which will be concatenated to the base URL based on input from client
+            let params = {
+                title: search_term,
+            };
+
+            // generating the full URL to send to the server
+            let queryURL = rootURL + "&" + encodeParameters(params);
+            console.log(queryURL);
+
+            //sending request
+            let xhttp = new XMLHttpRequest();
+            xhttp.addEventListener("load", processResponse);
+            xhttp.open("GET", queryURL);
+            xhttp.send();
+
+        };
+
+        // creating an event listener to only make the GET request when search button is clicked on
+        let submitButton = document.getElementById("search_button");
+        submitButton.addEventListener("click", function() {
+            if (document.getElementById("search_term").value === "") {
+                alert("Enter Title to Search.");
+                return false;
+            } else {
+                let search_term = document.getElementById("search_term").value;
+                if (search_term) {
+                    makeAPIQuery(search_term);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

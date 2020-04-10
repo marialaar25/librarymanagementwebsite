@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Loans Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Loan Book Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html">Books</a>
+        <a href="loans.html" class="active">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- Loan a book to a user form starts here  -->
+    <div class="search-div add-div">
+        <form>
+            <fieldset>
+                <legend class="legend-edit"> Loan a Book to User </legend>
+                <label>Required fields are marked with an asterisk (*).</label><br><br>
+
+                <label for="user_id">*Enter User ID: <input type="number" name="id" id="user_id" aria-required="true" required></label><br>
+                <label for="book_id">*Enter Book ID: <input type="number" name="id" id="book_id" aria-required="true" required></label><br>
+                <label for="new_loan">*Enter Due Date: <input type="date" name="dueDate" id="new_loan" aria-required="true" required></label><br>
+
+                <br><input id="add_button" type="button" value="Loan Book">
+                <input type="reset" value="Clear All Fields">
+            </fieldset>
+        </form>
+    </div>
+
+    <!-- Displaying Books currently out on loan (and to whom) -->
+    <div class="search-div isbn-div">
+        <fieldset>
+            <legend class="legend-edit"> Books Currently out on Loan </legend>
+            <ol id="users_loans_list"></ol>
+        </fieldset>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript code starts here -->
+    <script>
+        // Responsive Nav Bar code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        ////////////////////////////
+        // LOAN A BOOK TO A USER  //
+        ////////////////////////////
+
+        // Display a list of Loans, User ID's and Book ID's
+        // to make it easier for users to search by ID
+        function updateLoansList() {
+            // base URL for the library server
+            const base_url = "http://127.0.0.1:3000";
+
+            // making a GET request to the loans endpoint
+            var xhttp = new XMLHttpRequest();
+
+            var query_url = base_url + "/loans";
+            xhttp.open('GET', query_url);
+
+            // when the request is finished, go through the data
+            // and add each loan to a list
+            xhttp.addEventListener('load', function() {
+
+                var loans_list = document.querySelector('#users_loans_list');
+                // clear the list of existing data
+                loans_list.innerHTML = "";
+
+                var loans = JSON.parse(this.response);
+                // loop through each loan
+                loans.forEach(function(loan) {
+                    // create a new list item for each loan and add to the list
+                    // create html labels so clients understand what data point corresponds to which key
+                    var label = document.createTextNode("Book ID: ");
+                    var bookid = document.createTextNode(loan.BookId);
+                    var label2 = document.createTextNode("User ID: ");
+                    var userid = document.createTextNode(loan.UserId);
+                    var label3 = document.createTextNode("Due Date: ");
+                    var dueDate = document.createTextNode(loan.dueDate);
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('li');
+                    var list_item2 = document.createElement('p');
+                    var list_item3 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(bookid);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(userid);
+                    list_item3.appendChild(label3);
+                    list_item3.appendChild(dueDate);
+
+                    // append all elements into the html <ol> tag with id="loans_list"
+                    loans_list.appendChild(list_item);
+                    loans_list.appendChild(list_item2);
+                    loans_list.appendChild(list_item3);
+                })
+            });
+            xhttp.send();
+        }
+
+        // This function makes a POST request that loans a book to a user
+        document.querySelector('#add_button').addEventListener('click', function() {
+            // first check if all fields are filled in
+            if (document.getElementById("user_id").value === "" ||
+                document.getElementById("book_id").value === "" ||
+                document.getElementById("new_loan").value === "") {
+                alert("All fields are required, please enter User ID, Book ID and Due Date.");
+                return false;
+            } else {
+                const base_url = "http://127.0.0.1:3000";
+                // making sure the values of client input will be sent to the server
+                var userId = document.getElementById("user_id").value;
+                var bookId = document.getElementById("book_id").value;
+                var AddNewLoan = document.getElementById("new_loan").value;
+
+                // full server URL to which the POST request will go to 
+                var url = base_url + "/users/" + userId + "/loans/" + bookId;
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("POST", url);
+                // setting the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                // specifying the input parameters
+                var params = {
+                    dueDate: AddNewLoan
+                };
+
+                // when the POST request is returned, clear and update the user list
+                xhttp.addEventListener('load', function() {
+                    updateLoansList();
+                });
+                xhttp.send(JSON.stringify(params));
+            }
+        });
+        updateLoansList();
+    </script>
+</body>
+
+</html>

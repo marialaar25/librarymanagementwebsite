@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Update User Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Update User Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html" class="active">Users</a>
+        <a href="books.html">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- Update a user form starts here  -->
+    <div class="search-div isbn-div">
+        <form>
+            <fieldset>
+                <legend class="legend-edit"> Update a User on the System</legend>
+                <label>Required fields are marked with an asterisk (*).</label><br><br>
+
+                <Label for="search_term">*Enter the ID of the User you wish to Update: 
+                <input type="number" name="id" id="search_term" aria-required="true" required></Label><br>
+                <Label for="update_name">Enter Users New Name: 
+                <input type="text" name="name" id="update_name" aria-required="false"></Label><br>
+                <Label for="update_barcode">Enter Users New Barcode: 
+                <input type="text" name="barcode" id="update_barcode" pattern="[0-9]{6}" title="barcode is 6 digits" aria-required="false"></Label><br>
+                <Label for="update_mtype">Enter Users New Member Type: 
+                <input type="text" name="memberType" id="update_mtype" pattern="[Staff|Student]" title="members can be staff or students" aria-required="false"></Label><br>
+
+                <input id="update_button" type="button" value="Update">
+                <input type="reset" value="Clear All Fields">
+            </fieldset>
+        </form>
+    </div>
+    <!-- This section shows a list of all users, and shows change in the updated user -->
+    <div class="search-div isbn-div">
+        <fieldset>
+            <legend class="legend-edit"> All Users </legend>
+            <ol id="users_list"></ol>
+        </fieldset>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript code starts here  -->
+    <script>
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        /////////////////////////
+        // GET A LIST OF USERS //
+        /////////////////////////
+
+        // setting base URL
+        const base_url = "http://127.0.0.1:3000";
+
+        // a function that gets the list of users and adds them to a list
+        function updateUserList() {
+
+            // set up and make a GET request to the users endpoint
+            var xhttp = new XMLHttpRequest();
+            var users_url = "/users";
+
+            var query_url = base_url + users_url;
+            xhttp.open('GET', query_url);
+
+            // when request is finished add users to the list
+            xhttp.addEventListener('load', function() {
+
+                var user_list = document.querySelector('#users_list');
+                // clear the list of existing data
+                user_list.innerHTML = "";
+
+                var users = JSON.parse(this.response);
+                // loop through each user
+                users.forEach(function(user) {
+                    // create a new list item for each user and add to the list
+                    // create html labels so users understand what data point corresponds to which key
+                    var label = document.createTextNode("ID: ");
+                    var id = document.createTextNode(user.id);
+                    var label2 = document.createTextNode("Name: ");
+                    var name = document.createTextNode(user.name);
+                    var label3 = document.createTextNode("Barcode: ");
+                    var barcode = document.createTextNode(user.barcode);
+                    var label4 = document.createTextNode("Member Type: ");
+                    var memberType = document.createTextNode(user.memberType);
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('li');
+                    var list_item2 = document.createElement('p');
+                    var list_item3 = document.createElement('p');
+                    var list_item4 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(id);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(name);
+                    list_item3.appendChild(label3);
+                    list_item3.appendChild(barcode);
+                    list_item4.appendChild(label4);
+                    list_item4.appendChild(memberType);
+
+                    // append all elements into the html <ol> tag with id="users_list"
+                    user_list.appendChild(list_item);
+                    user_list.appendChild(list_item2);
+                    user_list.appendChild(list_item3);
+                    user_list.appendChild(list_item4);
+                })
+            });
+            xhttp.send();
+        }
+        updateUserList();
+
+        ///////////////////
+        // UPDATE A USER //
+        ///////////////////
+        document.querySelector('#update_button').addEventListener('click', function() {
+            // first check if field is not empty then make a PUT request
+            if (document.getElementById("search_term").value === "") {
+                alert("User ID to be updated is required.");
+                return false;
+            } else {
+                // get the user ID we want to change
+                var input = document.getElementById("search_term").value;
+                // write the changes
+                var nameUpdate = document.getElementById("update_name").value;
+                var barcodeUpdate = document.getElementById("update_barcode").value;
+                var memberTypeUpdate = document.getElementById("update_mtype").value;
+
+                // set up the query url to send to the server
+                var url = base_url + "/" + "users" + "/" + input;
+
+                var xhttp = new XMLHttpRequest();
+
+                xhttp.open("PUT", url);
+                // set the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                // specify parameters
+                var params = {
+                    name: nameUpdate,
+                    barcode: barcodeUpdate,
+                    memberType: memberTypeUpdate
+                };
+
+                // when the PUT request is finished, clear and update the users list
+                xhttp.addEventListener('load', function() {
+                    updateUserList();
+                });
+                xhttp.send(JSON.stringify(params));
+            }
+        });
+    </script>
+</body>
+
+</html>

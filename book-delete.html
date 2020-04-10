@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Delete Book Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Delete Book Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html" class="active">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- Delete a book form starts here  -->
+    <div id="input" class="search-div isbn-div">
+        <form>
+            <fieldset>
+                <legend class="legend-edit"> Delete a Book from the System</legend>
+                <Label for="delete_book">Enter Book ID: <input type="number" name="id" id="delete_book" aria-required="true" required></Label><br>
+                <input id="delete_button" type="button" value="Delete" aria-label="delete button">
+            </fieldset>
+        </form>
+    </div>
+    <!-- This sections shows all the books in the database and shows when a book is deleted -->
+    <div class="search-div isbn-div">
+        <fieldset>
+            <legend class="legend-edit"> All Books </legend>
+            <ol id="books_list"></ol>
+        </fieldset>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript code starts here -->
+    <script>
+        // Responsive Nar Bar code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        ///////////////////////////////////////
+        // GET AND DELETE REQUESTS FOR BOOKS //
+        ///////////////////////////////////////
+
+        // this function creates a list of all books on the html page
+        function updateBookList() {
+            // base URL for the library server
+            const base_url = "http://127.0.0.1:3000";
+
+            // making a GET request to the books endpoint
+            var xhttp = new XMLHttpRequest();
+
+            var query_url = base_url + "/books";
+            xhttp.open('GET', query_url);
+
+            // when the request is finished, go through the data
+            // and add each book to a list
+            xhttp.addEventListener('load', function() {
+
+                var book_list = document.querySelector('#books_list');
+                // clear the list of any data
+                book_list.innerHTML = "";
+
+                var books = JSON.parse(this.response);
+                // loop through each book
+                books.forEach(function(book) {
+                    // create a new list item for each book and add to the list
+                    // create html labels so clients understand what data corresponds to which key
+                    var label = document.createTextNode("ID: ");
+                    var id = document.createTextNode(book.id);
+                    var label2 = document.createTextNode("Title: ");
+                    var title = document.createTextNode(book.title);
+                    var label3 = document.createTextNode("ISBN: ");
+                    var isbn = document.createTextNode(book.isbn);
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('li');
+                    var list_item2 = document.createElement('p');
+                    var list_item3 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(id);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(title);
+                    list_item3.appendChild(label3);
+                    list_item3.appendChild(isbn);
+
+                    // append all elements into the html <ol> tag with id="books_list"
+                    book_list.appendChild(list_item);
+                    book_list.appendChild(list_item2);
+                    book_list.appendChild(list_item3);
+
+                })
+            });
+            xhttp.send();
+        }
+
+        // DELETE request form starts here
+        document.querySelector('#delete_button').addEventListener('click', function() {
+            // first check if fields are not empty
+            if (document.getElementById("delete_book").value === "") {
+                alert("Enter book ID to delete.");
+                return false;
+            } else {
+                // selecting the value of input which the client will ask to delete
+                var bookIdDelete = document.getElementById("delete_book").value;
+
+                // concatenating the full URL for the request
+                var url = base_url + "/books/" + bookIdDelete;
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("DELETE", url);
+                // remember to set the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                var params = {
+                    id: bookIdDelete
+                };
+
+                // when the DELETE request is finished, clear and update the users list
+                xhttp.addEventListener('load', function() {
+                    updateBookList();
+                });
+                xhttp.send(JSON.stringify(params));
+            }
+        });
+        updateBookList();
+    </script>
+</body>
+
+</html>

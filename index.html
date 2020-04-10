@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>PontyBridge University Library Administator Home Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Administator Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html" class="active">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <div class="row">
+        <div class="container-fluid col-md-6 make-donation">
+            <h1 class="index-h1">Make a donation to the PontyBridge University Library, to hire better web developers to make this website much better! </h1>
+            <p>Required fields are marked with an asterisk (*).</p>
+            <form class="index-form">
+                <fieldset>
+                    <label for="name">*Name: <input type="text" placeholder="Name and Surname" name="name" id="name" aria-required="true" required></label><br>
+                    <label for="donate">*Amount (£): <input type="number" placeholder="Numbers Only" name="amount" id="donate" aria-required="true" required></label><br>
+                    <br><input id="donate-button" type="button" value="Make a Donation">
+                    <input type="reset" value="Clear Field">
+                </fieldset>
+            </form>
+        </div>
+        <div class="container-fluid col-md-6 make-donation">
+            <h1 class="index-h1">Previous Generous Donations!</h1>
+            <ol id="past-donations" class="index-form"></ol>
+        </div>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript Code Starts -->
+    <script>
+        // Responsive Nav Bar JS Code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        /////////////////////////////////////////
+        // GET DONORS LIST AND MAKE A DONATION //
+        /////////////////////////////////////////
+
+        // base URL for the library server
+        const base_url = "http://127.0.0.1:3000";
+
+        // GET request to display a list of Donors and the amount they donated
+        function pastDonations() {
+            // making a GET request to the donations endpoint
+            var xhttp = new XMLHttpRequest();
+
+            var query_url = base_url + "/donations";
+            xhttp.open('GET', query_url);
+
+            // when the request is finished, go through the data
+            // and add each donor to a list
+            xhttp.addEventListener('load', function() {
+
+                var donor_list = document.querySelector('#past-donations');
+                // clear the list of existing data
+                donor_list.innerHTML = "";
+
+                var donations = JSON.parse(this.response);
+                // loop through each author
+                donations.forEach(function(donation) {
+                    // create a new list item for each author and add to the list
+                    // create html labels so users understand what data point corresponds to which key
+                    var label = document.createTextNode("Donor Name: ");
+                    var name = document.createTextNode(donation.name);
+                    var label2 = document.createTextNode("Amount Donated: £");
+                    var amount = document.createTextNode(donation.amount);
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('section');
+                    var list_item2 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(name);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(amount);
+
+                    // append all elements into the html <ol> tag with id="users_list"
+                    donor_list.appendChild(list_item);
+                    donor_list.appendChild(list_item2);
+                })
+            });
+            xhttp.send();
+        }
+
+        // This function makes a POST request when the donate button is clicked
+        document.querySelector('#donate-button').addEventListener('click', function() {
+            // First check that a form is not submitted while empty and the user fills all required fields
+            if (document.getElementById("name").value === "" || document.getElementById("donate").value === "") {
+                alert("Name and Amount fields are required.");
+                return false;
+            } else {
+                // assignning the values of input to a variable
+                var name = document.getElementById("name").value;
+                var amount = document.getElementById("donate").value;
+
+                // full server URL to which the POST request will go to 
+                var url = base_url + "/" + "donations";
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("POST", url);
+                // setting the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                // specifying the input parameters
+                var params = {
+                    name: name,
+                    amount: amount,
+                };
+
+                // when the POST request is returned, clear and update the prev donations list
+                xhttp.addEventListener('load', function() {
+                    pastDonations();
+                });
+                xhttp.send(JSON.stringify(params));
+                return true;
+            }
+        });
+        pastDonations();
+    </script>
+</body>
+
+</html>

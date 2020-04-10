@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Add Book Page</title>
+</head>
+
+<body class="bg">
+    <header class="heading-container heading">PontyBridge University Library Add Book Page</header>
+    <!-- HTML + JavaScript code for responsive nav bar was adapted from W3Schools website
+         URL: https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
+         Accessed on: 20/12/2019 -->
+    <nav class="topnav" id="myTopnav">
+        <a href="index.html">Home</a>
+        <a href="users.html">Users</a>
+        <a href="books.html" class="active">Books</a>
+        <a href="loans.html">Loans</a>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </nav>
+
+    <!-- The add a book form starts here  -->
+    <div class="search-div add-div">
+        <form>
+            <fieldset>
+                <legend class="legend-edit"> Add a New Book to Library </legend>
+                <label>Required fields are marked with an asterisk (*).</label><br><br>
+
+                <label for="add-newtitle">*Title:<br><input type="text" name="title" id="add-newtitle" aria-required="true" required></label><br>
+                <label for="add-newisbn">*ISBN:<br><input type="number" name="isbn" id="add-newisbn" aria-required="true" required><br></label><br><br>
+                <input id="add_button" type="button" value="Add Book">
+                <input type="reset" value="Clear All Fields">
+            </fieldset>
+        </form>
+    </div>
+    <!-- The add a book's author form starts here  -->
+    <div class="search-div add-div">
+        <form>
+            <fieldset>
+                <legend class="legend-edit"> Add an Author to Newly Added Book </legend>
+                <label>Required fields are marked with an asterisk (*).</label><br><br>
+
+                <label for="book-id">*Book ID:<br><input type="number" name="id" id="book-id" aria-required="true" required></label><br>
+                <label for="add-newauthor">*Add Author Name:<br><input type="text" name="name" id="add-newauthor" aria-required="true" required></label><br><br>
+                <input id="addauthor_button" type="button" value="Add Author">
+                <input type="reset" value="Clear All Fields">
+            </fieldset>
+        </form>
+    </div>
+    <!-- This section shows all books in the database -->
+    <div class="search-div isbn-div">
+        <fieldset>
+            <legend class="legend-edit"> All Books </legend>
+            <ol id="books_list"></ol>
+        </fieldset>
+    </div>
+    <footer class="row">
+        <div class="container-fluid col-md-6">
+            <h1 class="bottom-header">PontyBridge University Library Administator Page</h1>
+        </div>
+        <div class="container-fluid col-md-6 contact">
+            If you need Assistance, please contact IT support.<br> Room 3.67<br> 100 Newport Road<br> Cardiff
+            <br> CF76 3HI<br> Tel: 029654786<br> Email: itsupport@cardiff.ac.uk<br>
+        </div>
+    </footer>
+
+    <!-- JavaScript code starts here  -->
+    <script>
+        // Responsive Nav Bar code
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////
+        // GET AND POST REQUESTS TO ADD A BOOK AND AUTHOR OF THE BOOK //
+        ////////////////////////////////////////////////////////////////
+
+        // base URL for the library server
+        const base_url = "http://127.0.0.1:3000";
+
+        // this functions creates a list of all books on the html page
+        function updateBookList() {
+
+            // making a GET request to the books endpoint
+            var xhttp = new XMLHttpRequest();
+
+            var query_url = base_url + "/books";
+            xhttp.open('GET', query_url);
+
+            // when the request is finished, go through the data
+            // and add each book to a list
+            xhttp.addEventListener('load', function() {
+
+                var book_list = document.querySelector('#books_list');
+                // clear the list of existing data
+                book_list.innerHTML = "";
+
+                var books = JSON.parse(this.response);
+                // loop through each book
+                books.forEach(function(book) {
+                    // create a new list item for each book and add to the list
+                    // create html labels so users understand what data corresponds to which key
+                    var label = document.createTextNode("Title: ");
+                    var title = document.createTextNode(book.title);
+                    var label2 = document.createTextNode("ISBN: ");
+                    var isbn = document.createTextNode(book.isbn);
+                    var label3 = document.createTextNode("Book ID: ");
+                    var id = document.createTextNode(book.id);
+
+
+                    // create the html <li> and <p> elements
+                    var list_item = document.createElement('li');
+                    var list_item2 = document.createElement('p');
+                    var list_item3 = document.createElement('p');
+
+                    // append the labels and data into the html elements
+                    list_item.appendChild(label);
+                    list_item.appendChild(title);
+                    list_item2.appendChild(label2);
+                    list_item2.appendChild(isbn);
+                    list_item3.appendChild(label3);
+                    list_item3.appendChild(id);
+
+                    // append all elements into the html <ol> tag with id="users_list"
+                    book_list.appendChild(list_item);
+                    book_list.appendChild(list_item2);
+                    book_list.appendChild(list_item3);
+
+                })
+            });
+            xhttp.send();
+        }
+
+        // This function adds a new book to the database
+        document.querySelector('#add_button').addEventListener('click', function() {
+            // check if all fields filled
+            if (document.getElementById("add-newtitle").value === "" || document.getElementById("add-newisbn").value === "") {
+                alert("Title and ISBN fields are required.");
+                return false;
+            } else {
+                // making sure the values of client input will be sent to the server
+                var inputTitle = document.getElementById("add-newtitle").value;
+                var inputIsbn = document.getElementById("add-newisbn").value;
+
+                // full server URL to which the POST request will go to 
+                var url = base_url + "/" + "books";
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("POST", url);
+                // setting the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                // specifying the input parameters
+                var params = {
+                    title: inputTitle,
+                    isbn: inputIsbn,
+                };
+
+                // when the POST request is returned, clear and update the user list
+                xhttp.addEventListener('load', function() {
+                    updateBookList();
+                });
+                xhttp.send(JSON.stringify(params));
+            }
+        });
+
+        // This function adds an author to a book that has been added 
+        document.querySelector('#addauthor_button').addEventListener('click', function() {
+            // check if all fields are filled
+            if (document.getElementById("book-id").value === "" || document.getElementById("add-newauthor").value === "") {
+                alert("Book ID and Author Name are required.");
+                return false;
+            } else {
+                // making sure the values of client input will be sent to the server
+                var input = document.getElementById("book-id").value
+                var inputName = document.getElementById("add-newauthor").value;
+
+                // full server URL to which the POST request will go to 
+                var url = base_url + "/" + "books" + "/" + input + "/authors";
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("POST", url);
+                // setting the content type header
+                xhttp.setRequestHeader('Content-Type', 'application/json')
+
+                // specifying the input parameters
+                var params = {
+                    name: inputName,
+                };
+
+                // when the POST request is returned, clear and update the user list
+                xhttp.addEventListener('load', function() {
+                    updateBookList();
+                });
+                xhttp.send(JSON.stringify(params));
+            }
+        });
+        updateBookList();
+    </script>
+</body>
+
+</html>
